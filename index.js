@@ -1,11 +1,17 @@
 import express from "express";
+import customerRoute from "./src/routes/CustomerRoute.js";
+import hotelRoute from "./src/routes/HotelRoute.js";
+/* import cors from "cors"; */
 
 const app = express();
+const port = 3000;
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+/* app.use(cors()); */
+app.use(express.json());
 
-app.listen(3000, () => {
-  console.log("Example app listening on port 3000!");
+app.use("/customer", customerRoute);
+app.use("/hotel", hotelRoute);
+
+app.listen(port, () => {
+  console.log("App listening on port 3000!");
 });
