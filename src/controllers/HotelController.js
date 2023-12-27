@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import e from "express";
 
 const prisma = new PrismaClient();
 
@@ -12,4 +11,13 @@ async function getAllCustomers(req, res) {
   }
 }
 
-export { getAllCustomers };
+async function getMainPageHotelInfo(req, res) {
+  try {
+    const mainPageHotel = await prisma.hotel.findMany();
+    res.json(mainPageHotel);
+  } catch (error) {
+    res.json({ error: "Unable to retrieve customers" });
+  }
+}
+
+export { getAllCustomers, getMainPageHotelInfo };
