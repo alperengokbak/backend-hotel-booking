@@ -38,7 +38,11 @@ async function register(req, res) {
         country,
       },
     });
-    res.json(newCustomer);
+    // Generate a JWT token
+    const token = jwt.sign({ id: newCustomer.id }, process.env.TOKEN_SECRET, {
+      expiresIn: "30d",
+    });
+    res.json({ newCustomer, token, status: "Success" });
   } catch (error) {
     console.log(error);
     res.json({ error: "Unable to register" });
@@ -80,7 +84,7 @@ async function login(req, res) {
 }
 
 async function checkUser(req, res) {
-  const token = req.headers.authorization;
+  const token = req.header("authorization").split(" ")[1];
   if (!token) return res.status(401).json({ status: "No token provided" });
 
   try {
@@ -94,18 +98,20 @@ async function checkUser(req, res) {
     if (findCustomer) {
       return res.json({
         user: {
-          id: results.rows[0].id,
-          firstName: results.rows[0].firstname,
-          lastName: results.rows[0].lastname,
-          email: results.rows[0].email,
-          city: results.rows[0].city,
-          country: results.rows[0].country,
+          id: findCustomer.id,
+          firstName: findCustomer.firstName,
+          lastName: findCustomer.lastName,
+          email: findCustomer.email,
+          city: findCustomer.city,
+          country: findCustomer.country,
         },
       });
     } else {
       return res.status(401).json({ error: "Not authorized" });
     }
   } catch (error) {
+    console.log("gdgf", res.rows);
+    console.log(error);
     return res.status(401).json({ error: "Not authorized" });
   }
 }

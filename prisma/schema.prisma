@@ -31,6 +31,7 @@ model Hotel {
   rating       Int?
   image        String
   memberPrice  Boolean   @default(false)
+  description  String?
   comments     Comment[]
   bookings     Booking[]
 }
