@@ -31,4 +31,31 @@ async function isAuthorized(req, res, next) {
   }
 }
 
-export { isAuthorized };
+async function isAdmin(req, res, next) {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).json({ error: "Not authorized" });
+  }
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+
+      const findCustomer = await prisma.customer.findUnique({
+        where: {
+          id: decoded.id,
+          firstName: "admin",
+        },
+      });
+      if (findCustomer) {
+        req.user = findCustomer;
+        next();
+      } else {
+        return res.status(401).json({ error: "You don't have permission" });
+      }
+    } catch (error) {
+      return res.status(401).json({ error: "Not authorized" });
+    }
+  }
+}
+
+export { isAuthorized, isAdmin };

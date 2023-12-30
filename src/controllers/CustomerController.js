@@ -64,7 +64,7 @@ async function login(req, res) {
       expiresIn: "30d",
     });
     res.json({
-      message: "Login successful",
+      status: "Success",
       findCustomer: {
         id: findCustomer.id,
         email: findCustomer.email,
@@ -79,4 +79,35 @@ async function login(req, res) {
   }
 }
 
-export { register, login };
+async function checkUser(req, res) {
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ status: "No token provided" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+
+    const findCustomer = await prisma.customer.findUnique({
+      where: {
+        id: decoded.id,
+      },
+    });
+    if (findCustomer) {
+      return res.json({
+        user: {
+          id: results.rows[0].id,
+          firstName: results.rows[0].firstname,
+          lastName: results.rows[0].lastname,
+          email: results.rows[0].email,
+          city: results.rows[0].city,
+          country: results.rows[0].country,
+        },
+      });
+    } else {
+      return res.status(401).json({ error: "Not authorized" });
+    }
+  } catch (error) {
+    return res.status(401).json({ error: "Not authorized" });
+  }
+}
+
+export { register, login, checkUser };
