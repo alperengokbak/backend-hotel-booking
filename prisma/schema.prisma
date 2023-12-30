@@ -21,14 +21,16 @@ model Customer {
 
 model Hotel {
   id           Int       @id @default(autoincrement())
-  name         String
-  address      String
+  name         String    @unique
+  address      String?
   city         String
   country      String
   price        Int
-  specialPrice Int
+  specialPrice Boolean   @default(false)
   capacity     Int
-  rating       Int
+  rating       Int?
+  image        String
+  memberPrice  Boolean   @default(false)
   comments     Comment[]
   bookings     Booking[]
 }
@@ -41,6 +43,7 @@ model Booking {
   hotelId    Int
   entryDate  DateTime
   exitDate   DateTime
+  guests     Int
 
   @@unique([customerId, hotelId])
 }
