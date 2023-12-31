@@ -32,6 +32,7 @@ model Hotel {
   image        String
   memberPrice  Boolean   @default(false)
   description  String?
+  features     String[]
   comments     Comment[]
   bookings     Booking[]
 }

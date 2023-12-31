@@ -264,4 +264,26 @@ async function getAvailableHotelsForWeekend(req, res) {
   }
 }
 
-export { getMainPageHotelInfo, searchHotel, bookingHotel, getAvailableHotelsForWeekend, cancelBookingHotel };
+async function getHotelById(req, res) {
+  try {
+    const { id } = req.params;
+    const hotel = await prisma.hotel.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+    });
+    res.json({ hotel, status: "Success" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Unable to retrieve hotel" });
+  }
+}
+
+export {
+  getMainPageHotelInfo,
+  searchHotel,
+  bookingHotel,
+  getAvailableHotelsForWeekend,
+  cancelBookingHotel,
+  getHotelById,
+};

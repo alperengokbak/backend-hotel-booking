@@ -6,6 +6,7 @@ import {
   bookingHotel,
   getAvailableHotelsForWeekend,
   cancelBookingHotel,
+  getHotelById,
 } from "../controllers/HotelController.js";
 
 const router = Router();
@@ -14,6 +15,7 @@ const router = Router();
 router.get("/main", getMainPageHotelInfo);
 router.get("/search", searchHotel);
 router.get("/weekend", getAvailableHotelsForWeekend);
+router.get("/:id", getHotelById);
 router.post("/booking", bookingHotel);
 router.delete("/booking", cancelBookingHotel);
 
