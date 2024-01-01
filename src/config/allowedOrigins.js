@@ -1,3 +1,1 @@
-const allowedOrigins = ["https://booking-hotel-sntf.onrender.com"];
-
-export default allowedOrigins;
+export const allowedOrigins = ["https://booking-hotel-sntf.onrender.com"];
