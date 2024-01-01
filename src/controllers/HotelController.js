@@ -12,19 +12,43 @@ async function getMainPageHotelInfo(req, res) {
 }
 
 async function searchHotel(req, res) {
-  let { city, guestCount, entryDate, exitDate } = req.body;
-
-  // Convert date strings to ISO format
-  const isoEntryDate = new Date(entryDate).toISOString();
-  const isoExitDate = new Date(exitDate).toISOString();
-  city = city.toLowerCase();
+  let { city, guestCount, entryDate, exitDate } = req.query;
 
   try {
+    const newGuestCount = parseInt(guestCount);
+
+    // Check if entry date is later than today
+    const today = new Date();
+
+    if (new Date(entryDate) < today) {
+      return res.status(400).json({ error: "Entry date must be later than today" });
+    }
+
+    // Check if entry date is same as exit date
+    if (entryDate === exitDate) {
+      return res.status(400).json({ error: "Entry date cannot be the same as exit date" });
+    }
+
+    // Check if exit date is later than entry date
+    if (new Date(exitDate) < new Date(entryDate)) {
+      return res.status(400).json({ error: "Exit date must be later than entry date" });
+    }
+
+    // Check if city is not empty
+    if (!city) {
+      return res.status(400).json({ error: "City cannot be empty" });
+    }
+
+    // Convert date strings to ISO format
+    const isoEntryDate = new Date(entryDate).toISOString();
+    const isoExitDate = new Date(exitDate).toISOString();
+
+    city = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
     const availableHotels = await prisma.hotel.findMany({
       where: {
         city,
         capacity: {
-          gte: guestCount,
+          gte: newGuestCount,
         },
         OR: [
           {
@@ -61,7 +85,25 @@ async function searchHotel(req, res) {
       },
     });
 
-    res.json(availableHotels);
+    const hotelIds = availableHotels.map((hotel) => hotel.id);
+    const commentsCount = await prisma.comment.groupBy({
+      by: ["hotelId"],
+      where: {
+        hotelId: { in: hotelIds },
+      },
+      _count: true,
+    });
+
+    const hotelsWithCommentsCount = availableHotels.map((hotel) => {
+      const commentsCountForHotel = commentsCount.find((count) => count.hotelId === hotel.id);
+      const count = commentsCountForHotel ? commentsCountForHotel._count : 0;
+
+      return {
+        ...hotel,
+        commentsCount: count,
+      };
+    });
+    res.json({ hotelsWithCommentsCount, status: "Success" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Unable to retrieve hotels" });
@@ -69,8 +111,7 @@ async function searchHotel(req, res) {
 }
 
 async function bookingHotel(req, res) {
-  const { hotelId, entryDate, exitDate, guestCount } = req.body;
-  const { id } = req.user;
+  const { customerId, hotelId, entryDate, exitDate, guestCount } = req.body;
 
   const isoEntryDate = new Date(entryDate).toISOString();
   const isoExitDate = new Date(exitDate).toISOString();
@@ -125,7 +166,7 @@ async function bookingHotel(req, res) {
         },
         customer: {
           connect: {
-            id,
+            id: customerId,
           },
         },
       },
@@ -141,7 +182,7 @@ async function bookingHotel(req, res) {
       },
     });
 
-    res.json(booking);
+    res.json({ booking, status: "success" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Unable to book hotel" });
@@ -149,8 +190,7 @@ async function bookingHotel(req, res) {
 }
 
 async function cancelBookingHotel(req, res) {
-  const { bookingId } = req.body;
-  const { id } = req.user;
+  const { bookingId, customerId } = req.body;
 
   try {
     const booking = await prisma.booking.findUnique({
@@ -163,7 +203,7 @@ async function cancelBookingHotel(req, res) {
       return res.status(400).json({ error: "Booking does not exist" });
     }
 
-    if (booking.customerId !== id) {
+    if (booking.customerId !== customerId) {
       return res.status(400).json({ error: "Booking does not belong to the user" });
     }
 
@@ -272,7 +312,20 @@ async function getHotelById(req, res) {
         id: parseInt(id),
       },
     });
-    res.json({ hotel, status: "Success" });
+
+    if (!hotel) {
+      return res.status(404).json({ error: "Hotel not found" });
+    }
+
+    const comments = await prisma.comment.findMany({
+      where: {
+        hotelId: parseInt(id),
+      },
+    });
+
+    const commentsCount = comments.length;
+
+    res.json({ hotel: { ...hotel, commentsCount }, status: "Success" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Unable to retrieve hotel" });
