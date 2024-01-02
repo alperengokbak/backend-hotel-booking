@@ -57,7 +57,8 @@ Ensure you have the following software installed on your machine:
    npm run dev
    ```
 
-The backend server should now be running on [http://localhost:3000](http://localhost:3000).
+The frontend server should now be running on [MyDreamHotels.com](https://booking-hotel-sntf.onrender.com/).
+If you want you can check github page for backend project.[Backend Github Page](https://github.com/alperengokbak/frontend-hotel-booking)
 
 ## Project Structure
 
