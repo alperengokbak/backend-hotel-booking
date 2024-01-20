@@ -61,7 +61,7 @@ async function deleteHotel(req, res) {
         id,
       },
     });
-    res.json({ status: "success" });
+    res.json({ hotel, status: "success" });
   } catch (error) {
     console.log(error);
     res.json({ error: "Unable to delete hotel" });
